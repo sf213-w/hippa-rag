@@ -26,12 +26,12 @@ This project was developed to analyze and answer questions based on customer sur
 - [Ollama](https://ollama.com) installed and running locally
 - LLaMA model pulled:
 
-```powershell
+```bash
     ollama pull llama3.2
 ```
 
 #### Step 1: Open PowerShell and Navigate to the Project Folder
 
-```powershell
+```bash
     ollama pull llama3.2
 ```
