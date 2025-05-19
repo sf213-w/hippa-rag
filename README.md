@@ -18,7 +18,7 @@ This project was developed to analyze and answer questions based on customer sur
 
 ---
 
-## Setup Instructions (Windows PowerShell)
+## Setup Instructions
 
 ### Prerequisites
 
@@ -30,8 +30,22 @@ This project was developed to analyze and answer questions based on customer sur
     ollama pull llama3.2
 ```
 
-#### Step 1: Open PowerShell and Navigate to the Project Folder
+#### Step 1: Open a Terminal and Navigate to the Project Folder
 
 ```bash
-    ollama pull llama3.2
+    cd path/to/your/project
+```
+
+#### Step 2: Create a Virtual Environment
+
+```bash
+    python -m venv venv
+```
+
+#### Step 3: Activate the Environment
+
+For Windows PowerShell
+
+```bash
+    .\venv\Scripts\Activate
 ```
