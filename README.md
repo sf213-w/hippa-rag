@@ -49,3 +49,35 @@ For Windows PowerShell
 ```bash
     .\venv\Scripts\Activate
 ```
+
+If attempting to activate the virtual enviornment provides an error message saying running scripts is disabled on this system then you may need to change the exectution policy.
+Run the following command to change the excecution policy for the current PowerShell session.
+
+```bash
+    Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process
+```
+
+#### Step 4: Install Requirements
+
+This repository contains requirements.txt, a text file containing the names of the packages this requires.
+Run the following command to install the packages while in the virtual enviornment.
+
+```bash
+    pip install -r requirements.txt
+```
+
+#### Step 5: Run the Scripts
+
+Load your manual into the vector database:
+
+```bash
+    python ingest.py
+```
+
+Run the qa_server script (Reword)
+
+```bash
+    python qa_server.py
+```
+
+Ask a question.

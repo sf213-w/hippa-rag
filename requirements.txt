@@ -1,5 +1,7 @@
 # requirements.txt
 langchain
-chromadb
+langchain-community
+langchain-ollama
+langchain-chroma
 ollama
 pypdf

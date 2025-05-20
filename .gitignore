@@ -1,2 +1,6 @@
-# Ignore Virtual Enviornment
+# Ignore Directories
 venv/*
+vectorstore/*
+
+# Ignore the Manual
+HIPAA_Training_Buyers_Guide_CJ - Final.pdf
