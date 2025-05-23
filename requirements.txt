@@ -5,3 +5,5 @@ langchain-ollama
 langchain-chroma
 ollama
 pypdf
+beautifulsoup4
+weasyprint

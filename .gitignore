@@ -1,6 +1,10 @@
 # Ignore Directories
 venv/*
 vectorstore/*
+downloaded_pdfs/*
 
-# Ignore the Manual
-HIPAA_Training_Buyers_Guide_CJ - Final.pdf
+urls.txt
+
+# Ignore File Types
+*.docx
+*.pdf
