@@ -1,67 +1,58 @@
 # html_ingest.py
-# Step 1: Load website HTML, extract text, split into chunks, embed, and store with metadata
+# Load website HTMLs from a URL list file, extract text, split, embed, and store
 
+import argparse
 import requests
 from bs4 import BeautifulSoup
-from urllib.parse import urljoin, urlparse
 from langchain.schema import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_ollama import OllamaEmbeddings
 from langchain_chroma import Chroma
 import time
+import os
 
-# Set the base URL to crawl
-BASE_URL = "https://www.hipaajournal.com/effects-of-poor-communication-in-healthcare/"
-MAX_PAGES = 10
+def read_urls_from_file(filename):
+	with open(filename, "r") as f:
+		urls = [line.strip() for line in f if line.strip()]
+	return urls
 
-def is_internal_link(href, domain):
-	if not href:
-		return False
-	parsed = urlparse(href)
-	return parsed.netloc == "" or parsed.netloc == domain
+def fetch_html(url):
+	try:
+		print(f"Fetching: {url}")
+		resp = requests.get(url, timeout=10)
+		soup = BeautifulSoup(resp.content, "html.parser")
+		text = soup.get_text(separator="\n", strip=True)
+		return Document(page_content=text, metadata={"source": url})
+	except Exception as e:
+		print(f"Failed to fetch {url}: {e}")
+		return None
 
-def crawl_site(base_url, max_pages=10):
-	visited = set()
-	to_visit = [base_url]
-	text_documents = []
+if __name__ == "__main__":
+	parser = argparse.ArgumentParser(description="Ingest website HTML content from a list of URLs.")
+	parser.add_argument("--url-file", type=str, required=True, help="Path to a text file containing URLs (one per line)")
+	args = parser.parse_args()
 
-	domain = urlparse(base_url).netloc
+	# Step 1: Load URLs
+	if not os.path.isfile(args.url_file):
+		print(f"File not found: {args.url_file}")
+		exit(1)
 
-	while to_visit and len(visited) < max_pages:
-		url = to_visit.pop(0)
-		if url in visited:
-			continue
-		try:
-			print(f"Fetching: {url}")
-			resp = requests.get(url, timeout=10)
-			soup = BeautifulSoup(resp.content, "html.parser")
-			text = soup.get_text(separator="\n", strip=True)
-			doc = Document(page_content=text, metadata={"source": url})
-			text_documents.append(doc)
-			visited.add(url)
+	url_list = read_urls_from_file(args.url_file)
 
-			# Collect internal links
-			for link in soup.find_all("a", href=True):
-				href = link["href"]
-				full_url = urljoin(url, href)
-				if is_internal_link(href, domain) and full_url not in visited:
-					to_visit.append(full_url)
+	# Step 2: Download and parse each URL
+	raw_docs = []
+	for url in url_list:
+		doc = fetch_html(url)
+		if doc:
+			raw_docs.append(doc)
+		time.sleep(0.5)  # Politeness delay
 
-			time.sleep(0.5)  # Be polite to servers
+	# Step 3: Split into chunks
+	splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
+	chunks = splitter.split_documents(raw_docs)
 
-		except Exception as e:
-			print(f"Failed to fetch {url}: {e}")
-	return text_documents
+	# Step 4: Embed and store
+	embedding = OllamaEmbeddings(model="llama3.2")
+	vectorstore = Chroma.from_documents(chunks, embedding, persist_directory="vectorstore")
 
-# Step 2: Fetch and process HTML
-raw_docs = crawl_site(BASE_URL, MAX_PAGES)
-
-# Step 3: Split into chunks
-splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
-chunks = splitter.split_documents(raw_docs)
-
-# Step 4: Embed and store in vectorstore
-embedding = OllamaEmbeddings(model="llama3.2")
-vectorstore = Chroma.from_documents(chunks, embedding, persist_directory="vectorstore")
-
-print(f"Ingested and stored {len(chunks)} chunks from HTML.")
+	print(f"Ingested and stored {len(chunks)} chunks from {len(url_list)} URLs.")
